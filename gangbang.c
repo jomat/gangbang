@@ -10,6 +10,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
+
 
 WINDOW *status,*history,*info;
 
@@ -166,12 +168,35 @@ void keypresshandler(int key)
   addhistory(line);
 }
 
+int socket_connect(char *host, in_port_t port){
+        struct hostent *hp;
+        struct sockaddr_in addr;
+        int on = 1, sock;     
+
+        if((hp = gethostbyname(host)) == NULL){
+                herror("gethostbyname");
+                exit(1);
+        }
+        bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+        addr.sin_port = htons(port);
+        addr.sin_family = AF_INET;
+        sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(int));
+
+        if(sock == -1)
+          return -1;
+
+        if(connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1){
+          close(sock);
+          return -1;
+        }
+
+        return sock;
+}
+
+
 int main(void)
 {
-  int sock_status;
-  struct hostent *host;
-  struct in_addr h_addr;
-  struct sockaddr_in serv;
   struct config config;
   int key=0;  // just pressed key for main loop
   char tmp[512];
@@ -180,52 +205,6 @@ int main(void)
   atexit(quit);
 
   read_config(&config);
-
-  pid=fork();
-  if(!pid)
-  {
-    sock_status=socket(AF_INET, SOCK_STREAM, 0); 
-    if (sock_status < 0) {
-      fprintf(stderr,"error opening socket\n");
-      return 1;
-    }
-
-    if((host=gethostbyname(config.net.host))==NULL) {
-      fprintf(stderr,"no such host: %s\n",config.net.host);
-      return 2;
-    }
-    h_addr.s_addr = *((unsigned long *) host->h_addr_list[0]);
-    serv.sin_family = AF_INET;
-    serv.sin_port = htons(config.net.port);
-    serv.sin_addr.s_addr = h_addr.s_addr;
-
-    while(1)
-    {
-       int n;
-       char buf[1024];
-       if (connect(sock_status,(struct sockaddr *) &serv,sizeof(serv)) < 0)
-       {
-         mvwaddstr(status,0,0,"cant connect to remote");
-         wrefresh(status);
-       }
-
-       n = write(sock_status,"info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R",35);
-       if (n < 0) { 
-         mvwaddstr(status,0,0,"cant write to remote");
-         wrefresh(status);
-       }
-       else
-       {
-         read(sock_status,buf,sizeof(buf));
-         mvwaddstr(status,0,0,"gut!");
-       }
-      
-       wrefresh(status);
-
-      sleep(1);
-      wclear(status);
-    }
-  } else {
     getchar();
   
     initscr();
@@ -265,6 +244,36 @@ int main(void)
     if(config.info.show)
     wrefresh(info);
 
+
+  pid=fork();
+  if(!pid)
+  {
+   while(1)
+    {
+       int n;
+       int sock_status;
+       char buf[1024];
+       sock_status=socket_connect(config.net.host,config.net.port);
+       n = write(sock_status,"info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R\n",36);
+       if (n < 0) { 
+         mvwaddstr(status,0,0,"cant write to remote");
+         wrefresh(status);
+       }
+       else
+       {
+         while(read(sock_status,buf,sizeof(buf)-1)){
+           mvwaddstr(status,0,0,buf);
+           wrefresh(status);
+         }
+       }
+       close(sock_status);
+      
+       wrefresh(status);
+
+      sleep(3);
+      wclear(status);
+    }
+  } else {
     while((key=getch()) != config.key.quit)
     {
       keypresshandler(key);
