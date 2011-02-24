@@ -12,8 +12,7 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 
-
-WINDOW *status,*history,*info;
+WINDOW *status, *history, *info;
 
 struct confignet {
   char host[512];
@@ -27,7 +26,7 @@ struct configwin {
 };
 
 struct configkey {
-  int pause,stop,love,next,ban,radio,discovery,quit;
+  int pause, stop, love, next, ban, radio, discovery, quit;
 };
 
 struct config {
@@ -36,7 +35,7 @@ struct config {
   struct configwin status;
   struct configwin info;
   struct configkey key;
-} ;
+} config;
 
 void quit(void)
 {
@@ -48,103 +47,159 @@ void quit(void)
 
 }
 
+int socket_connect(char *host, in_port_t port)
+{
+  struct hostent *hp;
+  struct sockaddr_in addr;
+  int on = 1, sock;
 
-void trim(char * s) {
-  char * p = s;
+  if ((hp = gethostbyname(host)) == NULL) {
+    herror("gethostbyname");
+    exit(1);
+  }
+  bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
+  addr.sin_port = htons(port);
+  addr.sin_family = AF_INET;
+  sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *) &on,
+             sizeof(int));
+
+  if (sock == -1)
+    return -1;
+
+  if (connect(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_in))
+      == -1) {
+    close(sock);
+    return -1;
+  }
+
+  return sock;
+}
+
+void update_status()
+{
+
+  int n;
+  int sock_status;
+  char buf[1024];
+  sock_status = socket_connect(config.net.host, config.net.port);
+  n = write(sock_status, "info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R\n", 36);
+  if (n < 0) {
+    mvwaddstr(status, 0, 0, "cant write to remote");
+    wrefresh(status);
+  } else {
+    while (read(sock_status, buf, sizeof(buf) - 1)) {
+      mvwaddstr(status, 0, 0, buf);
+      wrefresh(status);
+    }
+  }
+  close(sock_status);
+
+  wrefresh(status);
+
+  wclear(status);
+
+}
+
+void trim(char *s)
+{
+  char *p = s;
   int l = strlen(p);
 
-  while(isspace(p[l - 1])) p[--l] = 0;
-  while(* p && isspace(* p)) ++p, --l;
+  while (isspace(p[l - 1]))
+    p[--l] = 0;
+  while (*p && isspace(*p))
+    ++p, --l;
 
   memmove(s, p, l + 1);
 }
 
-void read_config(struct config *config)
+void read_config()
 {
   FILE *fd;
   char line[512];
   char configfile[FILENAME_MAX];
-  char *key,*keyval,*saveptr=0;
-  snprintf(configfile,FILENAME_MAX,"%s/%s",getenv("HOME"),".gangbangrc");
+  char *key, *keyval, *saveptr = 0;
+  snprintf(configfile, FILENAME_MAX, "%s/%s", getenv("HOME"),
+           ".gangbangrc");
 
-  strcpy(config->net.host,"schwester.club.muc.ccc.de");
-  config->net.port=54311;
-  config->history.show=TRUE;
-  config->history.fg=COLOR_BLACK;
-  config->history.bg=COLOR_GREEN;
-  config->status.show=TRUE;
-  config->status.fg=COLOR_GREEN;
-  config->status.bg=COLOR_BLACK;
-  config->info.show=TRUE;
-  config->info.fg=COLOR_RED;
-  config->info.bg=COLOR_BLACK;
-  config->key.pause='p';
-  config->key.stop='S';
-  config->key.love='l';
-  config->key.next='n';
-  config->key.ban='B';
-  config->key.radio='r';
-  config->key.discovery='d';
-  config->key.quit='Q';
+  strcpy(config.net.host, "schwester.club.muc.ccc.de");
+  config.net.port = 54311;
+  config.history.show = TRUE;
+  config.history.fg = COLOR_BLACK;
+  config.history.bg = COLOR_GREEN;
+  config.status.show = TRUE;
+  config.status.fg = COLOR_GREEN;
+  config.status.bg = COLOR_BLACK;
+  config.info.show = TRUE;
+  config.info.fg = COLOR_RED;
+  config.info.bg = COLOR_BLACK;
+  config.key.pause = 'p';
+  config.key.stop = 'S';
+  config.key.love = 'l';
+  config.key.next = 'n';
+  config.key.ban = 'B';
+  config.key.radio = 'r';
+  config.key.discovery = 'd';
+  config.key.quit = 'Q';
 
-  fd=fopen(configfile,"r");
+  fd = fopen(configfile, "r");
 
   /* config to read */
   if (fd == NULL)
     return;
 
-  while(fgets(line,sizeof(line),fd) != NULL)
-  {
-    if(line[0]=='#')
+  while (fgets(line, sizeof(line), fd) != NULL) {
+    if (line[0] == '#')
       continue;
 
-    key=strtok_r(line,"=",&saveptr);
-    if(key==NULL || key[0]==0xa)
+    key = strtok_r(line, "=", &saveptr);
+    if (key == NULL || key[0] == 0xa)
       continue;
     trim(key);
-    keyval=strtok_r(NULL,"=",&saveptr);
-    if(keyval==NULL || key[0]==0xa)
+    keyval = strtok_r(NULL, "=", &saveptr);
+    if (keyval == NULL || key[0] == 0xa)
       continue;
     trim(keyval);
 
-    if(!strcmp(key,"net.host")) {
-      strncpy(config->net.host,keyval,strlen(config->net.host));
-    } else if(!strcmp(key,"net.port")) {
-      config->net.port=atoi(keyval);
-    } else if(!strcmp(key,"history.show")) {
-      config->history.show=atoi(keyval);
-    } else if(!strcmp(key,"history.fg")) {
-      config->history.fg=atoi(keyval);
-    } else if(!strcmp(key,"history.bg")) {
-      config->history.bg=atoi(keyval);
-    } else if(!strcmp(key,"status.show")) {
-      config->status.show=atoi(keyval);
-    } else if(!strcmp(key,"status.fg")) {
-      config->status.fg=atoi(keyval);
-    } else if(!strcmp(key,"status.bg")) {
-      config->status.bg=atoi(keyval);
-    } else if(!strcmp(key,"info.show")) {
-      config->info.show=atoi(keyval);
-    } else if(!strcmp(key,"info.fg")) {
-      config->info.fg=atoi(keyval);
-    } else if(!strcmp(key,"info.bg")) {
-      config->info.bg=atoi(keyval);
-    } else if(!strcmp(key,"key.pause")) {
-      config->key.pause=keyval[0];
-    } else if(!strcmp(key,"key.stop")) {
-      config->key.stop=keyval[0];
-    } else if(!strcmp(key,"key.love")) {
-      config->key.love=keyval[0];
-    } else if(!strcmp(key,"key.next")) {
-      config->key.next=keyval[0];
-    } else if(!strcmp(key,"key.ban")) {
-      config->key.ban=keyval[0];
-    } else if(!strcmp(key,"key.radio")) {
-      config->key.radio=keyval[0];
-    } else if(!strcmp(key,"key.discovery")) {
-      config->key.discovery=keyval[0];
-    } else if(!strcmp(key,"key.quit")) {
-      config->key.quit=keyval[0];
+    if (!strcmp(key, "net.host")) {
+      strncpy(config.net.host, keyval, strlen(config.net.host));
+    } else if (!strcmp(key, "net.port")) {
+      config.net.port = atoi(keyval);
+    } else if (!strcmp(key, "history.show")) {
+      config.history.show = atoi(keyval);
+    } else if (!strcmp(key, "history.fg")) {
+      config.history.fg = atoi(keyval);
+    } else if (!strcmp(key, "history.bg")) {
+      config.history.bg = atoi(keyval);
+    } else if (!strcmp(key, "status.show")) {
+      config.status.show = atoi(keyval);
+    } else if (!strcmp(key, "status.fg")) {
+      config.status.fg = atoi(keyval);
+    } else if (!strcmp(key, "status.bg")) {
+      config.status.bg = atoi(keyval);
+    } else if (!strcmp(key, "info.show")) {
+      config.info.show = atoi(keyval);
+    } else if (!strcmp(key, "info.fg")) {
+      config.info.fg = atoi(keyval);
+    } else if (!strcmp(key, "info.bg")) {
+      config.info.bg = atoi(keyval);
+    } else if (!strcmp(key, "key.pause")) {
+      config.key.pause = keyval[0];
+    } else if (!strcmp(key, "key.stop")) {
+      config.key.stop = keyval[0];
+    } else if (!strcmp(key, "key.love")) {
+      config.key.love = keyval[0];
+    } else if (!strcmp(key, "key.next")) {
+      config.key.next = keyval[0];
+    } else if (!strcmp(key, "key.ban")) {
+      config.key.ban = keyval[0];
+    } else if (!strcmp(key, "key.radio")) {
+      config.key.radio = keyval[0];
+    } else if (!strcmp(key, "key.discovery")) {
+      config.key.discovery = keyval[0];
+    } else if (!strcmp(key, "key.quit")) {
+      config.key.quit = keyval[0];
     }
   }
   fclose(fd);
@@ -152,133 +207,86 @@ void read_config(struct config *config)
 
 void addhistory(char *line)
 {
-  int histsizey,histsizex;
+  int histsizey, histsizex;
   getmaxyx(history, histsizey, histsizex);
 
   scroll(history);
 
-  mvwinsstr(history, histsizey-1, 0, line); 
+  mvwinsstr(history, histsizey - 1, 0, line);
   wrefresh(history);
 }
 
 void keypresshandler(int key)
 {
-  char line[COLS+1];
-  snprintf(line,sizeof(line),"keypressed: %c",key);
+  char line[COLS + 1];
+  snprintf(line, sizeof(line), "keypressed: %c", key);
   addhistory(line);
+  if (key == 'c')
+    update_status();
 }
 
-int socket_connect(char *host, in_port_t port){
-        struct hostent *hp;
-        struct sockaddr_in addr;
-        int on = 1, sock;     
+void create_windows()
+{
+  char tmp[1024];
+  initscr();
+  clear();
+  noecho();
+  curs_set(0);
+  cbreak();
+  keypad(stdscr, 1);
 
-        if((hp = gethostbyname(host)) == NULL){
-                herror("gethostbyname");
-                exit(1);
-        }
-        bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
-        addr.sin_port = htons(port);
-        addr.sin_family = AF_INET;
-        sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char *)&on, sizeof(int));
+  start_color();
+  use_default_colors();
+  init_pair(1, COLOR_RED, COLOR_BLUE);
+  init_pair(2, config.status.fg, config.status.bg);
+  init_pair(3, config.history.fg, config.history.bg);
+  init_pair(4, config.info.fg, config.info.bg);
 
-        if(sock == -1)
-          return -1;
+  history = newwin(LINES - (4 + config.info.show), COLS, 0, 0);
+  status = newwin(4, COLS, LINES - (4 + config.info.show), 0);
+  scrollok(history, TRUE);
+  info = newwin(1, COLS, LINES - 1, 0);
 
-        if(connect(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1){
-          close(sock);
-          return -1;
-        }
+  bkgd(COLOR_PAIR(1));
+  wbkgd(status, COLOR_PAIR(2));
+  wbkgd(history, COLOR_PAIR(3));
+  wbkgd(info, COLOR_PAIR(4));
 
-        return sock;
+  snprintf(tmp, sizeof(tmp),
+           "%c: pause - %c: stop - %c: love - %c: next - %c: ban "
+           "- %c: change radio - %c: discovery - %c: quit",
+           config.key.pause, config.key.stop, config.key.love,
+           config.key.next, config.key.ban, config.key.radio,
+           config.key.discovery, config.key.quit);
+  mvwaddstr(info, 0, 0, tmp);
+
+  refresh();
+  wrefresh(status);
+  wrefresh(history);
+  if (config.info.show)
+    wrefresh(info);
+
 }
 
+void mainloop()
+{
+  int key = 0;
+  while ((key = getch()) != config.key.quit) {
+    keypresshandler(key);
+  }
+
+}
 
 int main(void)
 {
-  struct config config;
-  int key=0;  // just pressed key for main loop
-  char tmp[512];
-  pid_t pid;
 
   atexit(quit);
 
-  read_config(&config);
-    getchar();
-  
-    initscr();
-    clear();
-    noecho();
-    curs_set(0);
-    cbreak();
-    keypad(stdscr, 1);
-  
-    start_color();
-    use_default_colors();
-    init_pair(1, COLOR_RED, COLOR_BLUE);
-    init_pair(2, config.status.fg, config.status.bg);
-    init_pair(3, config.history.fg, config.history.bg);
-    init_pair(4, config.info.fg, config.info.bg);
-  
-    history = newwin(LINES-(4+config.info.show), COLS, 0, 0);
-    status = newwin(4, COLS, LINES-(4+config.info.show), 0);
-    scrollok(history, TRUE);
-    info = newwin(1, COLS, LINES-1, 0);
-    
-    bkgd(COLOR_PAIR(1));
-    wbkgd(status, COLOR_PAIR(2));
-    wbkgd(history, COLOR_PAIR(3));
-    wbkgd(info, COLOR_PAIR(4));
-  
-    snprintf(tmp,sizeof(tmp),"%c: pause - %c: stop - %c: love - %c: next - %c: ban "
-      "- %c: change radio - %c: discovery - %c: quit"
-      ,config.key.pause,config.key.stop,config.key.love
-      ,config.key.next,config.key.ban,config.key.radio
-      ,config.key.discovery,config.key.quit);
-    mvwaddstr(info, 0, 0, tmp);
-  
-    refresh();
-    wrefresh(status);
-    wrefresh(history);
-    if(config.info.show)
-    wrefresh(info);
+  read_config();
 
+  create_windows();
 
-  pid=fork();
-  if(!pid)
-  {
-   while(1)
-    {
-       int n;
-       int sock_status;
-       char buf[1024];
-       sock_status=socket_connect(config.net.host,config.net.port);
-       n = write(sock_status,"info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R\n",36);
-       if (n < 0) { 
-         mvwaddstr(status,0,0,"cant write to remote");
-         wrefresh(status);
-       }
-       else
-       {
-         while(read(sock_status,buf,sizeof(buf)-1)){
-           mvwaddstr(status,0,0,buf);
-           wrefresh(status);
-         }
-       }
-       close(sock_status);
-      
-       wrefresh(status);
+  mainloop();
 
-      sleep(3);
-      wclear(status);
-    }
-  } else {
-    while((key=getch()) != config.key.quit)
-    {
-      keypresshandler(key);
-    } 
-  }
-  return(0);
+  return (0);
 }
-
