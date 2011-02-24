@@ -7,8 +7,11 @@ all: gangbang
 config: config.c
 	$(CC) $(CFLAGS) config.c -c -o config.o
 
-gangbang: config gangbang.c
-	$(CC) $(CFLAGS) config.o gangbang.c -o gangbang
+net: net.c
+	$(CC) $(CFLAGS) net.c -c -o net.o
+
+gangbang: config net gangbang.c
+	$(CC) $(CFLAGS) net.o config.o gangbang.c -o gangbang
 
  
 clean:
