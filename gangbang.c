@@ -11,6 +11,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <pthread.h>
 #include "net.h"
 #include "config.h"
 
@@ -49,6 +50,14 @@ void update_status()
 
   wclear(status);
 
+}
+
+void *update_status_loop()
+{
+  while(1) {
+    update_status();
+    sleep(4);
+  }
 }
 
 void addhistory(char *line)
@@ -125,12 +134,15 @@ void mainloop()
 
 int main(void)
 {
+  pthread_t status_thread;
 
   atexit(quit);
 
   read_config();
 
   create_windows();
+
+  pthread_create(&status_thread, NULL, update_status_loop, NULL);
 
   mainloop();
 
