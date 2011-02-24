@@ -1,0 +1,21 @@
+# lines beginning with a # are ignored
+net.host = schwester.club.muc.ccc.de
+net.port = 54311
+window.history.foreground = BLACK
+window.history.background = RED
+window.history.show = TRUE
+window.status.foreground = BLACK
+window.status.background = GREEN
+window.status.show = TRUE
+window.info.foreground = BLACK
+window.info.background = BLUE
+window.info.show = TRUE
+key.pause = p
+key.stop = S
+key.love = l
+key.next = n
+key.ban = B
+key.radio = r
+key.discovery = d
+key.quit = Q
+
