@@ -1,15 +1,33 @@
 # lines beginning with a # are ignored
-net.host = schwester.club.muc.ccc.de
-net.port = 54311
-window.history.foreground = BLACK
-window.history.background = RED
-window.history.show = TRUE
-window.status.foreground = BLACK
-window.status.background = GREEN
-window.status.show = TRUE
-window.info.foreground = BLACK
-window.info.background = BLUE
-window.info.show = TRUE
+net.host = gaia.loc
+net.port = 54321
+# colors:
+# -1 transparent background
+# 0 black
+# 1 red
+# 2 green
+# 3 yellow
+# 4 blue
+# 5 magenta
+# 6 cyan
+# 7 white
+
+# design of the history window
+history.fg = 7
+history.bg = -1
+history.show = 1
+
+# design of the status window
+status.fg = 7
+status.bg = 0
+status.show = 1
+
+# design of the info line
+info.fg = 2
+info.bg = -1
+info.show = 1
+
+# key config
 key.pause = p
 key.stop = S
 key.love = l

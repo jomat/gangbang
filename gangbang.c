@@ -29,14 +29,16 @@ struct config {
   struct configwin status;
   struct configwin info;
   struct configkey key;
-} config;
+} ;
 
 void quit(void)
 {
+
   delwin(status);
   delwin(history);
   delwin(info);
   endwin();
+
 }
 
 
@@ -50,67 +52,95 @@ void trim(char * s) {
   memmove(s, p, l + 1);
 }
 
-void read_config()
+void read_config(struct config *config)
 {
   FILE *fd;
-  char *line = NULL;
-  size_t len;
-  ssize_t read;
+  char line[512];
   char configfile[FILENAME_MAX];
   char *key,*keyval,*saveptr=0;
   snprintf(configfile,FILENAME_MAX,"%s/%s",getenv("HOME"),".gangbangrc");
 
-  strcpy(config.net.host,"schwester.club.muc.ccc.de");
-  config.net.port=54311;
+  strcpy(config->net.host,"schwester.club.muc.ccc.de");
+  config->net.port=54311;
+  config->history.show=TRUE;
+  config->history.fg=COLOR_BLACK;
+  config->history.bg=COLOR_GREEN;
+  config->status.show=TRUE;
+  config->status.fg=COLOR_GREEN;
+  config->status.bg=COLOR_BLACK;
+  config->info.show=TRUE;
+  config->info.fg=COLOR_RED;
+  config->info.bg=COLOR_BLACK;
+  config->key.pause='p';
+  config->key.stop='S';
+  config->key.love='l';
+  config->key.next='n';
+  config->key.ban='B';
+  config->key.radio='r';
+  config->key.discovery='d';
+  config->key.quit='Q';
 
   fd=fopen(configfile,"r");
-  if (fd == NULL)
-  {
-    fprintf(stderr,"%s could not be opened\n"
-      "net.host = schwester.club.muc.ccc.de\n"
-      "net.port = 54311\n"
-      "window.history.foreground = BLACK\n"
-      "window.history.background = RED\n"
-      "window.history.show = TRUE\n"
-      "window.status.foreground = BLACK\n"
-      "window.status.background = GREEN\n"
-      "window.status.show = TRUE\n"
-      "window.info.foreground = BLACK\n"
-      "window.info.background = BLUE\n"
-      "window.info.show = TRUE\n"
-      "key.pause = p\n"
-      "key.stop = S\n"
-      "key.love = l\n"
-      "key.next = n\n"
-      "key.ban = B\n"
-      "key.radio = r\n"
-      "key.discovery = d\n"
-      "key.quit = Q\n"
-      ,configfile);
-    exit(EXIT_FAILURE);
-  }
 
-  while((read=getline(&line,&len,fd)) != -1)
+  /* config to read */
+  if (fd == NULL)
+    return;
+
+  while(fgets(line,sizeof(line),fd) != NULL)
   {
     if(line[0]=='#')
       continue;
 
     key=strtok_r(line,"=",&saveptr);
-    if(key==NULL)
+    if(key==NULL || key[0]==0xa)
       continue;
     trim(key);
     keyval=strtok_r(NULL,"=",&saveptr);
-    if(keyval==NULL)
+    if(keyval==NULL || key[0]==0xa)
       continue;
     trim(keyval);
 
     if(!strcmp(key,"net.host")) {
-      printf("host %s\n",keyval);
+      strncpy(config->net.host,keyval,strlen(config->net.host));
     } else if(!strcmp(key,"net.port")) {
-      printf("config.net.port\n");
+      config->net.port=atoi(keyval);
+    } else if(!strcmp(key,"history.show")) {
+      config->history.show=atoi(keyval);
+    } else if(!strcmp(key,"history.fg")) {
+      config->history.fg=atoi(keyval);
+    } else if(!strcmp(key,"history.bg")) {
+      config->history.bg=atoi(keyval);
+    } else if(!strcmp(key,"status.show")) {
+      config->status.show=atoi(keyval);
+    } else if(!strcmp(key,"status.fg")) {
+      config->status.fg=atoi(keyval);
+    } else if(!strcmp(key,"status.bg")) {
+      config->status.bg=atoi(keyval);
+    } else if(!strcmp(key,"info.show")) {
+      config->info.show=atoi(keyval);
+    } else if(!strcmp(key,"info.fg")) {
+      config->info.fg=atoi(keyval);
+    } else if(!strcmp(key,"info.bg")) {
+      config->info.bg=atoi(keyval);
+    } else if(!strcmp(key,"key.pause")) {
+      config->key.pause=keyval[0];
+    } else if(!strcmp(key,"key.stop")) {
+      config->key.stop=keyval[0];
+    } else if(!strcmp(key,"key.love")) {
+      config->key.love=keyval[0];
+    } else if(!strcmp(key,"key.next")) {
+      config->key.next=keyval[0];
+    } else if(!strcmp(key,"key.ban")) {
+      config->key.ban=keyval[0];
+    } else if(!strcmp(key,"key.radio")) {
+      config->key.radio=keyval[0];
+    } else if(!strcmp(key,"key.discovery")) {
+      config->key.discovery=keyval[0];
+    } else if(!strcmp(key,"key.quit")) {
+      config->key.quit=keyval[0];
     }
-
   }
+  fclose(fd);
 }
 
 void addhistory(char *line)
@@ -133,14 +163,16 @@ void keypresshandler(int key)
 
 int main(void)
 {
-
-  read_config();
-  return 0;
-
+  struct config config;
   int key=0;  // just pressed key for main loop
+  char tmp[512];
+
+  atexit(quit);
+
+  read_config(&config);
+
 
   initscr();
-  atexit(quit);
   clear();
   noecho();
   curs_set(0);
@@ -148,13 +180,14 @@ int main(void)
   keypad(stdscr, 1);
 
   start_color();
-  init_pair(1, COLOR_YELLOW, COLOR_BLUE);
-  init_pair(2, COLOR_BLUE, COLOR_WHITE);
-  init_pair(3, COLOR_BLACK, COLOR_GREEN);
-  init_pair(4, COLOR_RED, COLOR_BLACK);
+  use_default_colors();
+  init_pair(1, COLOR_RED, COLOR_BLUE);
+  init_pair(2, config.status.fg, config.status.bg);
+  init_pair(3, config.history.fg, config.history.bg);
+  init_pair(4, config.info.fg, config.info.bg);
 
-  history = newwin(LINES-5, COLS, 0, 0);
-  status = newwin(4, COLS, LINES-5, 0);
+  history = newwin(LINES-(4+config.info.show), COLS, 0, 0);
+  status = newwin(4, COLS, LINES-(4+config.info.show), 0);
   scrollok(history, TRUE);
   info = newwin(1, COLS, LINES-1, 0);
   
@@ -163,14 +196,20 @@ int main(void)
   wbkgd(history, COLOR_PAIR(3));
   wbkgd(info, COLOR_PAIR(4));
 
-  mvwaddstr(info, 0, 0, "pause - Stop - love - next - Ban - change radio - discovery - Quit");
+  snprintf(tmp,sizeof(tmp),"%c: pause - %c: stop - %c: love - %c: next - %c: ban "
+    "- %c: change radio - %c: discovery - %c: quit"
+    ,config.key.pause,config.key.stop,config.key.love
+    ,config.key.next,config.key.ban,config.key.radio
+    ,config.key.discovery,config.key.quit);
+  mvwaddstr(info, 0, 0, tmp);
 
   refresh();
   wrefresh(status);
   wrefresh(history);
-  wrefresh(info);
- 
-  while((key=getch()) != 'Q')
+  if(config.info.show)
+    wrefresh(info);
+
+  while((key=getch()) != config.key.quit)
   {
     keypresshandler(key);
   } 
