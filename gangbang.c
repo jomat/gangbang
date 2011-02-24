@@ -5,6 +5,11 @@
 #include <curses.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 WINDOW *status,*history,*info;
 
@@ -163,57 +168,108 @@ void keypresshandler(int key)
 
 int main(void)
 {
+  int sock_status;
+  struct hostent *host;
+  struct in_addr h_addr;
+  struct sockaddr_in serv;
   struct config config;
   int key=0;  // just pressed key for main loop
   char tmp[512];
+  pid_t pid;
 
   atexit(quit);
 
   read_config(&config);
 
+  pid=fork();
+  if(!pid)
+  {
+    sock_status=socket(AF_INET, SOCK_STREAM, 0); 
+    if (sock_status < 0) {
+      fprintf(stderr,"error opening socket\n");
+      return 1;
+    }
 
-  initscr();
-  clear();
-  noecho();
-  curs_set(0);
-  cbreak();
-  keypad(stdscr, 1);
+    if((host=gethostbyname(config.net.host))==NULL) {
+      fprintf(stderr,"no such host: %s\n",config.net.host);
+      return 2;
+    }
+    h_addr.s_addr = *((unsigned long *) host->h_addr_list[0]);
+    serv.sin_family = AF_INET;
+    serv.sin_port = htons(config.net.port);
+    serv.sin_addr.s_addr = h_addr.s_addr;
 
-  start_color();
-  use_default_colors();
-  init_pair(1, COLOR_RED, COLOR_BLUE);
-  init_pair(2, config.status.fg, config.status.bg);
-  init_pair(3, config.history.fg, config.history.bg);
-  init_pair(4, config.info.fg, config.info.bg);
+    while(1)
+    {
+       int n;
+       char buf[1024];
+       if (connect(sock_status,(struct sockaddr *) &serv,sizeof(serv)) < 0)
+       {
+         mvwaddstr(status,0,0,"cant connect to remote");
+         wrefresh(status);
+       }
 
-  history = newwin(LINES-(4+config.info.show), COLS, 0, 0);
-  status = newwin(4, COLS, LINES-(4+config.info.show), 0);
-  scrollok(history, TRUE);
-  info = newwin(1, COLS, LINES-1, 0);
+       n = write(sock_status,"info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R",35);
+       if (n < 0) { 
+         mvwaddstr(status,0,0,"cant write to remote");
+         wrefresh(status);
+       }
+       else
+       {
+         read(sock_status,buf,sizeof(buf));
+         mvwaddstr(status,0,0,"gut!");
+       }
+      
+       wrefresh(status);
+
+      sleep(1);
+      wclear(status);
+    }
+  } else {
+    getchar();
   
-  bkgd(COLOR_PAIR(1));
-  wbkgd(status, COLOR_PAIR(2));
-  wbkgd(history, COLOR_PAIR(3));
-  wbkgd(info, COLOR_PAIR(4));
-
-  snprintf(tmp,sizeof(tmp),"%c: pause - %c: stop - %c: love - %c: next - %c: ban "
-    "- %c: change radio - %c: discovery - %c: quit"
-    ,config.key.pause,config.key.stop,config.key.love
-    ,config.key.next,config.key.ban,config.key.radio
-    ,config.key.discovery,config.key.quit);
-  mvwaddstr(info, 0, 0, tmp);
-
-  refresh();
-  wrefresh(status);
-  wrefresh(history);
-  if(config.info.show)
+    initscr();
+    clear();
+    noecho();
+    curs_set(0);
+    cbreak();
+    keypad(stdscr, 1);
+  
+    start_color();
+    use_default_colors();
+    init_pair(1, COLOR_RED, COLOR_BLUE);
+    init_pair(2, config.status.fg, config.status.bg);
+    init_pair(3, config.history.fg, config.history.bg);
+    init_pair(4, config.info.fg, config.info.bg);
+  
+    history = newwin(LINES-(4+config.info.show), COLS, 0, 0);
+    status = newwin(4, COLS, LINES-(4+config.info.show), 0);
+    scrollok(history, TRUE);
+    info = newwin(1, COLS, LINES-1, 0);
+    
+    bkgd(COLOR_PAIR(1));
+    wbkgd(status, COLOR_PAIR(2));
+    wbkgd(history, COLOR_PAIR(3));
+    wbkgd(info, COLOR_PAIR(4));
+  
+    snprintf(tmp,sizeof(tmp),"%c: pause - %c: stop - %c: love - %c: next - %c: ban "
+      "- %c: change radio - %c: discovery - %c: quit"
+      ,config.key.pause,config.key.stop,config.key.love
+      ,config.key.next,config.key.ban,config.key.radio
+      ,config.key.discovery,config.key.quit);
+    mvwaddstr(info, 0, 0, tmp);
+  
+    refresh();
+    wrefresh(status);
+    wrefresh(history);
+    if(config.info.show)
     wrefresh(info);
 
-  while((key=getch()) != config.key.quit)
-  {
-    keypresshandler(key);
-  } 
-
+    while((key=getch()) != config.key.quit)
+    {
+      keypresshandler(key);
+    } 
+  }
   return(0);
 }
 
