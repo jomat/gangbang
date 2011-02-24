@@ -9,8 +9,13 @@ struct confignet {
   int port;
 };
 
-struct configwin {
+struct configoptwin {
   bool show;
+  short fg;
+  short bg;
+};
+
+struct configwin {
   short fg;
   short bg;
 };
@@ -23,7 +28,7 @@ struct config {
   struct confignet net;
   struct configwin history;
   struct configwin status;
-  struct configwin info;
+  struct configoptwin info;
   struct configkey key;
 } config;
 

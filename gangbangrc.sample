@@ -15,12 +15,10 @@ net.port = 54321
 # design of the history window
 history.fg = 7
 history.bg = -1
-history.show = 1
 
 # design of the status window
 status.fg = 7
-status.bg = 0
-status.show = 1
+status.bg = 1
 
 # design of the info line
 info.fg = 2

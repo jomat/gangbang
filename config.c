@@ -24,10 +24,8 @@ void read_config()
 
   strcpy(config.net.host, "schwester.club.muc.ccc.de");
   config.net.port = 54311;
-  config.history.show = TRUE;
   config.history.fg = COLOR_BLACK;
   config.history.bg = COLOR_GREEN;
-  config.status.show = TRUE;
   config.status.fg = COLOR_GREEN;
   config.status.bg = COLOR_BLACK;
   config.info.show = TRUE;
@@ -65,14 +63,10 @@ void read_config()
       strncpy(config.net.host, keyval, strlen(config.net.host));
     } else if (!strcmp(key, "net.port")) {
       config.net.port = atoi(keyval);
-    } else if (!strcmp(key, "history.show")) {
-      config.history.show = atoi(keyval);
     } else if (!strcmp(key, "history.fg")) {
       config.history.fg = atoi(keyval);
     } else if (!strcmp(key, "history.bg")) {
       config.history.bg = atoi(keyval);
-    } else if (!strcmp(key, "status.show")) {
-      config.status.show = atoi(keyval);
     } else if (!strcmp(key, "status.fg")) {
       config.status.fg = atoi(keyval);
     } else if (!strcmp(key, "status.bg")) {
