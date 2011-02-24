@@ -39,6 +39,7 @@ void read_config()
   config.key.radio = 'r';
   config.key.discovery = 'd';
   config.key.quit = 'Q';
+  config.lnf.statusupdate = 3;
 
   fd = fopen(configfile, "r");
 
@@ -93,6 +94,8 @@ void read_config()
       config.key.discovery = keyval[0];
     } else if (!strcmp(key, "key.quit")) {
       config.key.quit = keyval[0];
+    } else if (!strcmp(key, "lnf.statusupdate")) {
+      config.lnf.statusupdate = atoi(keyval);
     }
   }
   fclose(fd);

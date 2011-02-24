@@ -35,3 +35,5 @@ key.radio = r
 key.discovery = d
 key.quit = Q
 
+# update interval for status window
+lnf.statusupdate = 3

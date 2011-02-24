@@ -19,17 +19,14 @@ WINDOW *status, *history, *info;
 
 void quit(void)
 {
-
   delwin(status);
   delwin(history);
   delwin(info);
   endwin();
-
 }
 
 void update_status()
 {
-
   int n;
   int sock_status;
   char buf[1024];
@@ -39,24 +36,19 @@ void update_status()
     mvwaddstr(status, 0, 0, "cant write to remote");
     wrefresh(status);
   } else {
-    while (read(sock_status, buf, sizeof(buf) - 1)) {
-      mvwaddstr(status, 0, 0, buf);
-      wrefresh(status);
-    }
+    read(sock_status, buf, sizeof(buf) - 1);
+    mvwaddstr(status, 0, 0, buf);
   }
   close(sock_status);
 
   wrefresh(status);
-
-  wclear(status);
-
 }
 
 void *update_status_loop()
 {
   while(1) {
     update_status();
-    sleep(4);
+    sleep(config.lnf.statusupdate);
   }
 }
 

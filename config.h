@@ -24,12 +24,17 @@ struct configkey {
   int pause, stop, love, next, ban, radio, discovery, quit;
 };
 
+struct lnf {
+  int statusupdate;
+};
+
 struct config {
   struct confignet net;
   struct configwin history;
   struct configwin status;
   struct configoptwin info;
   struct configkey key;
+  struct lnf lnf;
 } config;
 
 void read_config();
