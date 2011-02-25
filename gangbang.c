@@ -63,6 +63,7 @@ void keypresshandler(int key)
 void create_windows()
 {
   char tmp[1024];
+
   initscr();
   clear();
   noecho();

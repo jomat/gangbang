@@ -7,8 +7,8 @@ int socket_connect(char *host, in_port_t port)
   int on = 1, sock;
 
   if ((hp = gethostbyname(host)) == NULL) {
-    herror("gethostbyname");
-    exit(1);
+    // TODO: add some logging facility for these errors
+    return -1;
   }
   bcopy(hp->h_addr, &addr.sin_addr, hp->h_length);
   addr.sin_port = htons(port);
