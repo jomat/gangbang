@@ -4,14 +4,18 @@ CC = gcc
 
 all: gangbang
 
+updatestatus: updatestatus.c
+	$(CC) $(CFLAGS) updatestatus.c -c -o updatestatus.o
+
+
 config: config.c
 	$(CC) $(CFLAGS) config.c -c -o config.o
 
 net: net.c
 	$(CC) $(CFLAGS) net.c -c -o net.o
 
-gangbang: config net gangbang.c
-	$(CC) $(CFLAGS) net.o config.o gangbang.c -o gangbang
+gangbang: config net updatestatus gangbang.c
+	$(CC) $(CFLAGS) net.o config.o updatestatus.o gangbang.c -o gangbang
 
  
 clean:

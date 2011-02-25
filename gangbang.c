@@ -1,21 +1,5 @@
-#define _GNU_SOURCE
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <curses.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <pthread.h>
-#include "net.h"
-#include "config.h"
+#include "gangbang.h"
 
-WINDOW *status, *history, *info;
 
 void quit(void)
 {
@@ -23,33 +7,6 @@ void quit(void)
   delwin(history);
   delwin(info);
   endwin();
-}
-
-void update_status()
-{
-  int n;
-  int sock_status;
-  char buf[1024];
-  sock_status = socket_connect(config.net.host, config.net.port);
-  n = write(sock_status, "info %a|%t|%A|%d|%s|%u|%U|%X|%T|%R\n", 36);
-  if (n < 0) {
-    mvwaddstr(status, 0, 0, "cant write to remote");
-    wrefresh(status);
-  } else {
-    read(sock_status, buf, sizeof(buf) - 1);
-    mvwaddstr(status, 0, 0, buf);
-  }
-  close(sock_status);
-
-  wrefresh(status);
-}
-
-void *update_status_loop()
-{
-  while(1) {
-    update_status();
-    sleep(config.lnf.statusupdate);
-  }
 }
 
 void addhistory(char *line)

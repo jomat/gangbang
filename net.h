@@ -1,3 +1,6 @@
+#ifndef GANGBANG_NET_H
+#define GANGBANG_NET_H
+
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <string.h>
@@ -9,3 +12,5 @@
 #include <netinet/tcp.h>
 
 int socket_connect(char *host, in_port_t port);
+
+#endif /* GANGBANG_NET_H */

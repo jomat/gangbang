@@ -1,3 +1,7 @@
+#ifndef GANGBANG_CONFIG_H
+#define GANGBANG_CONFIG_H
+
+
 #define _GNU_SOURCE
 #include <curses.h>
 #include <string.h>
@@ -39,3 +43,4 @@ struct config {
 
 void read_config();
 
+#endif /* GANGBANG_CONFIG_H */
