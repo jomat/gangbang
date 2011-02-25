@@ -23,7 +23,7 @@ void addhistory(char *line)
 
   curtime = time(NULL);
   loctime = localtime(&curtime);
-  strftime(timestr, 6, "%H:%M ", loctime);
+  strftime(timestr, 6, "%H:%M", loctime);
 
   getmaxyx(history, histsizey, histsizex);
 
