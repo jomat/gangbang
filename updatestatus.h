@@ -1,6 +1,24 @@
+#ifndef GANGBANG_UPDATESTATUS_H
+#define GANGBANG_UPDATESTATUS_H
+
 #include "net.h"
 #include "gangbang.h"
 
+struct songinfo {
+  char artist[256]
+    , track[256]
+    , album[256]
+    , station[256]
+    , stationurl[512]
+    , artisturl[512]
+    , albumurl[512]
+    , trackurl[512];
+  int duration
+    , remaining;
+};
+
+void tokenize_songinfo(char *buf,struct songinfo *songinfo);
 void update_status();
 void *update_status_loop();
 
+#endif /* GANGBANG_UPDATESTATUS_H */
