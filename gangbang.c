@@ -35,8 +35,25 @@ void addhistory(char *line)
   wrefresh(history);
 }
 
+void window_size_changed(void)
+{
+  wresize(history,LINES - (4 + config.info.show),COLS);
+  wresize(status,4,COLS);
+  wresize(info,1,COLS);
+  mvwin(status,LINES - (4 + config.info.show),0);
+  mvwin(info,LINES - 1,0);
+  refresh();
+  wrefresh(status);
+  wrefresh(history);
+  if (config.info.show)
+    wrefresh(info);
+}
+
 void keypresshandler(int key)
 {
+  if (KEY_RESIZE == key)
+    window_size_changed();
+
   if (key == 'c')
     update_status();
 

@@ -29,6 +29,7 @@ WINDOW *status, *history, *info;
 
 void quit(void);
 void addhistory(char *line);
+void window_size_changed(void);
 void keypresshandler(int key);
 void create_windows();
 void mainloop();
