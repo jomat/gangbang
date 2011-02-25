@@ -23,11 +23,10 @@ void addhistory(char *line)
 void keypresshandler(int key)
 {
   char line[COLS + 1];
-  snprintf(line, sizeof(line), "keypressed: %c", key);
-  addhistory(line);
   if (key == 'c')
     update_status();
 
+  /* TODO: check return value of send_command()s */
   if (config.key.pause == key) {
     addhistory("trying to toggle pause");
     send_command("pause");
