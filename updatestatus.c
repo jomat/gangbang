@@ -7,24 +7,34 @@ void tokenize_songinfo(char *buf,struct songinfo *songinfo)
     , *token;
 
   token=strtok_r(buf, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->artist,token,sizeof(songinfo->artist));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->track,token,sizeof(songinfo->track));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->album,token,sizeof(songinfo->album));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   songinfo->duration=atoi(token);
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->station,token,sizeof(songinfo->station));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->stationurl,token,sizeof(songinfo->stationurl));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->artisturl,token,sizeof(songinfo->artisturl));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->albumurl,token,sizeof(songinfo->albumurl));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   strncpy(songinfo->trackurl,token,sizeof(songinfo->trackurl));
   token=strtok_r(NULL, "|", &saveptr);
+  token[strlen(token)-1]=0;
   songinfo->remaining=atoi(token);
 }
 
@@ -37,7 +47,7 @@ void update_status()
   struct songinfo songinfo;
 
   sock_status = socket_connect(config.net.host, config.net.port);
-  n = write(sock_status, "info %a|%t|%l|%d|%s|%S|%A|%L|%T|%R\n", 36);
+  n = write(sock_status, "info %a |%t |%l |%d |%s |%S |%A |%L |%T |%R \n", 46);
   if (n < 0) {
     mvwaddstr(status, 0, 0, "cant write to remote");
     wrefresh(status);
