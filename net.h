@@ -10,7 +10,9 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include "config.h"
 
 int socket_connect(char *host, in_port_t port);
+int send_command(char *command);
 
 #endif /* GANGBANG_NET_H */

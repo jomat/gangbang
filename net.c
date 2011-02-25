@@ -29,3 +29,15 @@ int socket_connect(char *host, in_port_t port)
   return sock;
 }
 
+int send_command(char *command)
+{
+  int socket,n;
+
+  socket=socket_connect(config.net.host, config.net.port);
+
+  n=write(socket, command, sizeof(command));
+
+  close(socket);
+
+  return n;
+}

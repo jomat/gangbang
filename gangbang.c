@@ -27,6 +27,18 @@ void keypresshandler(int key)
   addhistory(line);
   if (key == 'c')
     update_status();
+
+  if (config.key.pause == key) {
+      addhistory("trying to pause");
+      send_command("pause");
+  } else if (config.key.stop == key) {
+  } else if (config.key.love == key) {
+  } else if (config.key.next == key) {
+  } else if (config.key.ban == key) {
+  } else if (config.key.radio == key) {
+  } else if (config.key.discovery == key) {
+  } else if (config.key.quit == key) {
+  }
 }
 
 void create_windows()
