@@ -29,15 +29,25 @@ void keypresshandler(int key)
     update_status();
 
   if (config.key.pause == key) {
-      addhistory("trying to pause");
-      send_command("pause");
+    addhistory("trying to toggle pause");
+    send_command("pause");
   } else if (config.key.stop == key) {
+    addhistory("trying to stop");
+    send_command("stop");
   } else if (config.key.love == key) {
+    addhistory("trying to loce current track");
+    send_command("love");
   } else if (config.key.next == key) {
+    addhistory("trying to skip");
+    send_command("skip");
   } else if (config.key.ban == key) {
+    addhistory("trying to ban");
+    send_command("ban");
   } else if (config.key.radio == key) {
+    addhistory("changing radio station not yet implemented :B");
   } else if (config.key.discovery == key) {
-  } else if (config.key.quit == key) {
+    addhistory("trying to toggle discovery");
+    send_command("discovery");
   }
 }
 
