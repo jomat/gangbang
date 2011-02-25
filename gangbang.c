@@ -12,17 +12,27 @@ void quit(void)
 void addhistory(char *line)
 {
   int histsizey, histsizex;
+  char tmp[COLS];
+  char timestr[6];
+  time_t curtime;
+  struct tm *loctime;
+
+  curtime = time(NULL);
+  loctime = localtime(&curtime);
+  strftime(timestr, 6, "%H:%M ", loctime);
+
   getmaxyx(history, histsizey, histsizex);
 
   scroll(history);
 
-  mvwinsstr(history, histsizey - 1, 0, line);
+  snprintf(tmp,COLS,"%s %s",timestr,line);
+
+  mvwinsstr(history, histsizey - 1, 0, tmp);
   wrefresh(history);
 }
 
 void keypresshandler(int key)
 {
-  char line[COLS + 1];
   if (key == 'c')
     update_status();
 

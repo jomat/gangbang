@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <pthread.h>
+#include <time.h>
 #include "net.h"
 #include "config.h"
 #include "updatestatus.h"
