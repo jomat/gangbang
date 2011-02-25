@@ -35,7 +35,7 @@ void keypresshandler(int key)
     addhistory("trying to stop");
     send_command("stop");
   } else if (config.key.love == key) {
-    addhistory("trying to loce current track");
+    addhistory("trying to love current track");
     send_command("love");
   } else if (config.key.next == key) {
     addhistory("trying to skip");
