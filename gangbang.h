@@ -26,6 +26,7 @@
 #include "updatestatus.h"
 
 WINDOW *status, *history, *info;
+int oldLINES;
 
 void quit(void);
 void addhistory(char *line);

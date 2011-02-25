@@ -39,7 +39,11 @@ void window_size_changed(void)
 {
   // TODO: check redundant code in window initialization
   char tmp[1024];
+  if(oldLINES-LINES > 0)
+    wscrl(history, oldLINES-LINES);
   wresize(history,LINES - (4 + config.info.show),COLS);
+  if (oldLINES-LINES < 0)
+    wscrl(history, oldLINES-LINES);
   wresize(status,4,COLS);
   wresize(info,1,COLS);
   mvwin(status,LINES - (4 + config.info.show),0);
@@ -47,6 +51,7 @@ void window_size_changed(void)
   refresh();
   wrefresh(status);
   wrefresh(history);
+  oldLINES=LINES;
   if (config.info.show)
   {
      snprintf(tmp, sizeof(tmp),
@@ -119,6 +124,8 @@ void create_windows()
   wbkgd(status, COLOR_PAIR(2));
   wbkgd(history, COLOR_PAIR(3));
   wbkgd(info, COLOR_PAIR(4));
+
+  oldLINES=LINES;  // important to know for window resizing
 
   refresh();
   wrefresh(status);
