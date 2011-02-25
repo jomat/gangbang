@@ -37,6 +37,8 @@ void addhistory(char *line)
 
 void window_size_changed(void)
 {
+  // TODO: check redundant code in window initialization
+  char tmp[1024];
   wresize(history,LINES - (4 + config.info.show),COLS);
   wresize(status,4,COLS);
   wresize(info,1,COLS);
@@ -46,7 +48,16 @@ void window_size_changed(void)
   wrefresh(status);
   wrefresh(history);
   if (config.info.show)
+  {
+     snprintf(tmp, sizeof(tmp),
+              "%c: pause - %c: stop - %c: love - %c: next - %c: ban "
+              "- %c: change radio - %c: discovery - %c: quit",
+              config.key.pause, config.key.stop, config.key.love,
+              config.key.next, config.key.ban, config.key.radio,
+              config.key.discovery, config.key.quit);
+    mvwaddstr(info, 0, 0, tmp);
     wrefresh(info);
+  }
 }
 
 void keypresshandler(int key)
@@ -109,20 +120,20 @@ void create_windows()
   wbkgd(history, COLOR_PAIR(3));
   wbkgd(info, COLOR_PAIR(4));
 
-  snprintf(tmp, sizeof(tmp),
-           "%c: pause - %c: stop - %c: love - %c: next - %c: ban "
-           "- %c: change radio - %c: discovery - %c: quit",
-           config.key.pause, config.key.stop, config.key.love,
-           config.key.next, config.key.ban, config.key.radio,
-           config.key.discovery, config.key.quit);
-  mvwaddstr(info, 0, 0, tmp);
-
   refresh();
   wrefresh(status);
   wrefresh(history);
   if (config.info.show)
+  {
+    snprintf(tmp, sizeof(tmp),
+           "%c: pause - %c: stop - %c: love - %c: next - %c: ban "
+           "- %c: change radio - %c: discovery - %c: quit",
+           config.key.pause, config.key.stop, config.key.love,
+           config.key.next, config.key.ban, config.key.radio,
+           config.key.discovery, config.key.quit); 
+    mvwaddstr(info, 0, 0, tmp);
     wrefresh(info);
-
+  }
 }
 
 void mainloop()
