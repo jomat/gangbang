@@ -1,6 +1,10 @@
+/*
+	Copyright (C) 2011 jomat <jomat+gangbang@jmt.gr>
+	Published under the terms of the GNU General Public License (GPL).
+*/
+
 #ifndef GANGBANG_CONFIG_H
 #define GANGBANG_CONFIG_H
-
 
 #define _GNU_SOURCE
 #include <curses.h>

@@ -1,3 +1,8 @@
+/*
+	Copyright (C) 2011 jomat <jomat+gangbang@jmt.gr>
+	Published under the terms of the GNU General Public License (GPL).
+*/
+
 #ifndef GANGBANG_NET_H
 #define GANGBANG_NET_H
 

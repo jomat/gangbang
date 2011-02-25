@@ -1,3 +1,6 @@
 make
 optionally copy gangbangrc.sample to ~/.gangbangrc
 run binary
+
+Note: this piece of software is quite untested right now. Don't wonder if you
+find any bugs od missing features, and don't hesitate to report them.

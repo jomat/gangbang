@@ -1,3 +1,8 @@
+/*
+	Copyright (C) 2011 jomat <jomat+gangbang@jmt.gr>
+	Published under the terms of the GNU General Public License (GPL).
+*/
+
 #include "net.h"
 
 int socket_connect(char *host, in_port_t port)

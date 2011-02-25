@@ -1,5 +1,9 @@
-#include "gangbang.h"
+/*
+	Copyright (C) 2011 jomat <jomat+gangbang@jmt.gr>
+	Published under the terms of the GNU General Public License (GPL).
+*/
 
+#include "gangbang.h"
 
 void quit(void)
 {
