@@ -23,6 +23,7 @@
 #include <netinet/tcp.h>
 #include <pthread.h>
 #include <time.h>
+#include "util.h"
 #include "net.h"
 #include "config.h"
 #include "updatestatus.h"

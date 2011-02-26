@@ -70,32 +70,36 @@ void window_size_changed(void)
 
 int menu_change_radio(char *station)
 {
-  int i,rows,columns;
+  int i,rows,columns,n_choices;
   ITEM **it;
   MENU *me;
   WINDOW *win;
   int ch;
+  char *choices[] = {
+    "Cancel",
+    "lastfm://user/$USER/loved",
+    "lastfm://user/$USER/personal",
+    "lastfm://usertags/$USER/$TAG",
+    "lastfm://artist/$ARTIST/similarartists",
+    "lastfm://globaltags/$TAG",
+    "lastfm://user/$USER/recommended",
+    "lastfm://user/$USER/playlist",
+    "lastfm://tag/$TAG1*$TAG2*$TAG3",
+    (char *)NULL,
+  };
+  n_choices = ARRAY_SIZE(choices);
 
-  it = (ITEM **)calloc(10, sizeof(ITEM *));
-  it[0] = new_item("Cancel", "");
-  it[1] = new_item("lastfm://user/$USER/loved", "");
-  it[2] = new_item("lastfm://user/$USER/personal", "");
-  it[3] = new_item("lastfm://usertags/$USER/$TAG", "");
-  it[4] = new_item("lastfm://artist/$ARTIST/similarartists", "");
-  it[5] = new_item("lastfm://globaltags/$TAG", "");
-  it[6] = new_item("lastfm://user/$USER/recommended", "");
-  it[7] = new_item("lastfm://user/$USER/playlist", "");
-  it[8] = new_item("lastfm://tag/$TAG1*$TAG2*$TAG3", "");
-  it[9] = 0;
-  for(i=0; i<=8; i++)
-    if(!it[i])
+  it = (ITEM **)calloc(n_choices, sizeof(ITEM *));
+  for(i=0; i<n_choices; i++) {
+    if(!(it[i]=new_item(choices[i],"")) && i!=n_choices-1 )
       exit(1);  // TODO: how about an error message
+  }
 
   me = new_menu(it);
 
   scale_menu(me,&rows,&columns);
 
-  win = newwin(rows+3, columns+3, 5, 5);
+  win = newwin(rows+3, columns+3, 0, 0);
   set_menu_win (me, win);
   set_menu_sub (me, derwin(win, rows, columns, 2, 2));
   box(win, 0, 0);  
@@ -109,6 +113,10 @@ int menu_change_radio(char *station)
   {
     switch(ch)
     {
+      case KEY_RESIZE:
+        window_size_changed();
+        touchwin(win);
+        break;
       case KEY_DOWN:
         menu_driver(me, REQ_DOWN_ITEM);
         break;
@@ -116,6 +124,7 @@ int menu_change_radio(char *station)
         menu_driver(me, REQ_UP_ITEM);
         break;
     }
+    post_menu(me);  
     wrefresh(win);
   } 
 
