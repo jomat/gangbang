@@ -53,18 +53,19 @@ void update_status()
   static char currtrack[256],currartist[256];
 
   sock_status = socket_connect(config.net.host, config.net.port);
-  n = write(sock_status, "info %a |%t |%l |%d |%s |%S |%A |%L |%T |%R \n", 46);
+  n = write(sock_status, "info %a |%t |%l |%d |%s |%S |%A |%L |%T |%R |\n", 47);
   if (n < 0) {
     mvwaddstr(status, 0, 0, "cant write to remote");
     wrefresh(status);
   } else {
     read(sock_status, buf, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1]=0;
     tokenize_songinfo(buf,&songinfo);
-    snprintf(line,sizeof(line),"now playing: %s - %s (%i/%i)\n"
+    snprintf(line,COLS,"now playing: %s - %s (%i/%i)\n"
       ,songinfo.artist,songinfo.track,songinfo.duration-songinfo.remaining
       ,songinfo.duration);
     mvwaddstr(status, lineno++, 0, line);
-    snprintf(line,sizeof(line),"Station: %s",songinfo.station);
+    snprintf(line,COLS,"Station: %s",songinfo.station);
     mvwaddstr(status, lineno++, 0, line);
 
     if(strcmp(songinfo.track,currtrack)||strcmp(songinfo.artist,currartist))
