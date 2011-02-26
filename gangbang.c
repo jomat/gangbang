@@ -32,24 +32,12 @@ void addhistory(char *line)
   prefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
 }
 
-void window_size_changed(void)
+void refresh_main_screen()
 {
-  // TODO: check redundant code in window initialization
   char tmp[1024];
-  if(oldLINES-LINES > 0)
-    wscrl(history, oldLINES-LINES);
-  wresize(history,LINES - (4 + config.info.show),COLS);
-  if (oldLINES-LINES < 0)
-    wscrl(history, oldLINES-LINES);
-  wresize(status,4,COLS);
-  wresize(info,1,COLS);
-  mvwin(status,LINES - (4 + config.info.show),0);
-  mvwin(info,LINES - 1,0);
-
   wnoutrefresh(stdscr);
   wnoutrefresh(status);
   pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
-  oldLINES=LINES;
   if (config.info.show)
   {
      snprintf(tmp, sizeof(tmp),
@@ -64,16 +52,96 @@ void window_size_changed(void)
   doupdate();
 }
 
+void window_size_changed(void)
+{
+  // TODO: check redundant code in window initialization
+  if(oldLINES-LINES > 0)
+    wscrl(history, oldLINES-LINES);
+  wresize(history,LINES - (4 + config.info.show),COLS);
+  if (oldLINES-LINES < 0)
+    wscrl(history, oldLINES-LINES);
+  wresize(status,4,COLS);
+  wresize(info,1,COLS);
+  mvwin(status,LINES - (4 + config.info.show),0);
+  mvwin(info,LINES - 1,0);
+  oldLINES=LINES;
+  refresh_main_screen();
+}
+
+int menu_change_radio(char *station)
+{
+  int i,rows,columns;
+  ITEM **it;
+  MENU *me;
+  WINDOW *win;
+  int ch;
+
+  it = (ITEM **)calloc(10, sizeof(ITEM *));
+  it[0] = new_item("Cancel", "");
+  it[1] = new_item("lastfm://user/$USER/loved", "");
+  it[2] = new_item("lastfm://user/$USER/personal", "");
+  it[3] = new_item("lastfm://usertags/$USER/$TAG", "");
+  it[4] = new_item("lastfm://artist/$ARTIST/similarartists", "");
+  it[5] = new_item("lastfm://globaltags/$TAG", "");
+  it[6] = new_item("lastfm://user/$USER/recommended", "");
+  it[7] = new_item("lastfm://user/$USER/playlist", "");
+  it[8] = new_item("lastfm://tag/$TAG1*$TAG2*$TAG3", "");
+  it[9] = 0;
+  for(i=0; i<=8; i++)
+    if(!it[i])
+      exit(1);  // TODO: how about an error message
+
+  me = new_menu(it);
+
+  scale_menu(me,&rows,&columns);
+
+  win = newwin(rows+3, columns+3, 5, 5);
+  set_menu_win (me, win);
+  set_menu_sub (me, derwin(win, rows, columns, 2, 2));
+  box(win, 0, 0);  
+  mvwaddstr(win, 1, 2, "Change radio station to:");
+
+  post_menu(me);  
+  wrefresh(win);
+
+
+  while((ch=getch()) != 0xA)
+  {
+    switch(ch)
+    {
+      case KEY_DOWN:
+        menu_driver(me, REQ_DOWN_ITEM);
+        break;
+      case KEY_UP:
+        menu_driver(me, REQ_UP_ITEM);
+        break;
+    }
+    wrefresh(win);
+  } 
+
+  unpost_menu(me);
+  free_menu(me);
+
+  for(i=0; i<=9; i++)
+    free_item(it[i]);
+
+  free(it);
+  delwin(win);
+  refresh_main_screen();
+  return item_index(current_item(me));
+}
+
 void keypresshandler(int key)
 {
-  if (KEY_RESIZE == key)
-    window_size_changed();
+  char tmp[512];
 
   if (key == 'c')
     update_status();
 
   /* TODO: check return value of send_command()s */
-  if (config.key.pause == key) {
+  if (KEY_RESIZE == key) {
+    window_size_changed();
+  } else if (config.key.pause == key) {
     addhistory("trying to toggle pause");
     send_command("pause");
   } else if (config.key.stop == key) {
@@ -89,7 +157,7 @@ void keypresshandler(int key)
     addhistory("trying to ban");
     send_command("ban");
   } else if (config.key.radio == key) {
-    addhistory("changing radio station not yet implemented :B");
+    menu_change_radio(tmp);
   } else if (config.key.discovery == key) {
     addhistory("trying to toggle discovery");
     send_command("discovery");
@@ -98,8 +166,6 @@ void keypresshandler(int key)
 
 void create_windows()
 {
-  char tmp[1024];
-
   initscr();
   clear();
   noecho();
@@ -109,7 +175,6 @@ void create_windows()
 
   start_color();
   use_default_colors();
-  init_pair(1, COLOR_RED, COLOR_BLUE);
   init_pair(2, config.status.fg, config.status.bg);
   init_pair(3, config.history.fg, config.history.bg);
   init_pair(4, config.info.fg, config.info.bg);
@@ -119,28 +184,12 @@ void create_windows()
   scrollok(history, TRUE);
   info = newwin(1, COLS, LINES - 1, 0);
 
-  bkgd(COLOR_PAIR(1));
   wbkgd(status, COLOR_PAIR(2));
   wbkgd(history, COLOR_PAIR(3));
   wbkgd(info, COLOR_PAIR(4));
 
   oldLINES=LINES;  // important to know for window resizing
-
-  wnoutrefresh(stdscr);
-  wnoutrefresh(status);
-  pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
-  if (config.info.show)
-  {
-    snprintf(tmp, sizeof(tmp),
-           "%c: pause - %c: stop - %c: love - %c: next - %c: ban "
-           "- %c: change radio - %c: discovery - %c: quit",
-           config.key.pause, config.key.stop, config.key.love,
-           config.key.next, config.key.ban, config.key.radio,
-           config.key.discovery, config.key.quit); 
-    mvwaddstr(info, 0, 0, tmp);
-    wnoutrefresh(info);
-  }
-  doupdate();
+  refresh_main_screen();
 }
 
 void mainloop()

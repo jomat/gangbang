@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <menu.h>
+#include <panel.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
