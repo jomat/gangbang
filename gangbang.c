@@ -48,9 +48,10 @@ void window_size_changed(void)
   wresize(info,1,COLS);
   mvwin(status,LINES - (4 + config.info.show),0);
   mvwin(info,LINES - 1,0);
-  refresh();
-  wrefresh(status);
-  wrefresh(history);
+
+  wnoutrefresh(stdscr);
+  wnoutrefresh(status);
+  wnoutrefresh(history);
   oldLINES=LINES;
   if (config.info.show)
   {
@@ -61,8 +62,9 @@ void window_size_changed(void)
               config.key.next, config.key.ban, config.key.radio,
               config.key.discovery, config.key.quit);
     mvwaddstr(info, 0, 0, tmp);
-    wrefresh(info);
+    wnoutrefresh(info);
   }
+  doupdate();
 }
 
 void keypresshandler(int key)
@@ -127,9 +129,9 @@ void create_windows()
 
   oldLINES=LINES;  // important to know for window resizing
 
-  refresh();
-  wrefresh(status);
-  wrefresh(history);
+  wnoutrefresh(stdscr);
+  wnoutrefresh(status);
+  wnoutrefresh(history);
   if (config.info.show)
   {
     snprintf(tmp, sizeof(tmp),
@@ -139,8 +141,9 @@ void create_windows()
            config.key.next, config.key.ban, config.key.radio,
            config.key.discovery, config.key.quit); 
     mvwaddstr(info, 0, 0, tmp);
-    wrefresh(info);
+    wnoutrefresh(info);
   }
+  doupdate();
 }
 
 void mainloop()
