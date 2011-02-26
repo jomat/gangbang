@@ -15,7 +15,6 @@ void quit(void)
 
 void addhistory(char *line)
 {
-  int histsizey, histsizex;
   char tmp[COLS];
   char timestr[6];
   time_t curtime;
@@ -25,14 +24,12 @@ void addhistory(char *line)
   loctime = localtime(&curtime);
   strftime(timestr, 6, "%H:%M", loctime);
 
-  getmaxyx(history, histsizey, histsizex);
-
   scroll(history);
 
   snprintf(tmp,COLS,"%s %s",timestr,line);
 
-  mvwinsstr(history, histsizey - 1, 0, tmp);
-  wrefresh(history);
+  mvwinsstr(history, LINES - (5 + config.info.show), 0, tmp);
+  prefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
 }
 
 void window_size_changed(void)
@@ -51,7 +48,7 @@ void window_size_changed(void)
 
   wnoutrefresh(stdscr);
   wnoutrefresh(status);
-  wnoutrefresh(history);
+  pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
   oldLINES=LINES;
   if (config.info.show)
   {
@@ -117,7 +114,7 @@ void create_windows()
   init_pair(3, config.history.fg, config.history.bg);
   init_pair(4, config.info.fg, config.info.bg);
 
-  history = newwin(LINES - (4 + config.info.show), COLS, 0, 0);
+  history = newpad(LINES - (4 + config.info.show), COLS);
   status = newwin(4, COLS, LINES - (4 + config.info.show), 0);
   scrollok(history, TRUE);
   info = newwin(1, COLS, LINES - 1, 0);
@@ -131,7 +128,7 @@ void create_windows()
 
   wnoutrefresh(stdscr);
   wnoutrefresh(status);
-  wnoutrefresh(history);
+  pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
   if (config.info.show)
   {
     snprintf(tmp, sizeof(tmp),
