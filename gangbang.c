@@ -35,6 +35,7 @@ void addhistory(char *line)
 void refresh_main_screen()
 {
   char tmp[1024];
+  touchwin(status);
   wnoutrefresh(stdscr);
   wnoutrefresh(status);
   pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
@@ -70,10 +71,10 @@ void window_size_changed(void)
 
 int menu_change_radio(char *station)
 {
-  int i,rows,columns,n_choices;
+  int i,rows,columns,n_choices,it_idx;
   ITEM **it;
   MENU *me;
-  WINDOW *win;
+  WINDOW *win,*dwin;
   int ch;
   char *choices[] = {
     "Cancel",
@@ -99,9 +100,11 @@ int menu_change_radio(char *station)
 
   scale_menu(me,&rows,&columns);
 
-  win = newwin(rows+3, columns+3, 0, 0);
+  win = newwin((LINES<rows+3)?LINES:rows+3, columns+3, 0, 0);
+  keypad(win, TRUE);
   set_menu_win (me, win);
-  set_menu_sub (me, derwin(win, rows, columns, 2, 2));
+  set_menu_sub (me, dwin=derwin(win, LINES-3<rows?LINES-3:rows, columns, 2, 2));
+  set_menu_format(me,LINES-3<rows?LINES-3:rows,1);
   box(win, 0, 0);  
   mvwaddstr(win, 1, 2, "Change radio station to:");
 
@@ -115,6 +118,9 @@ int menu_change_radio(char *station)
     {
       case KEY_RESIZE:
         window_size_changed();
+        wresize(win,(LINES<rows+3)?LINES:rows+3, columns+3);
+        wresize(dwin,LINES-3<rows?LINES-3:rows, columns);
+        set_menu_format(me,LINES-3<rows?LINES-3:rows,1); 
         touchwin(win);
         break;
       case KEY_DOWN:
@@ -124,20 +130,21 @@ int menu_change_radio(char *station)
         menu_driver(me, REQ_UP_ITEM);
         break;
     }
-    post_menu(me);  
     wrefresh(win);
   } 
+
+  it_idx = item_index(current_item(me));
 
   unpost_menu(me);
   free_menu(me);
 
-  for(i=0; i<=9; i++)
+  for(i=0; i<n_choices; i++)
     free_item(it[i]);
 
   free(it);
   delwin(win);
   refresh_main_screen();
-  return item_index(current_item(me));
+  return it_idx;
 }
 
 void keypresshandler(int key)
