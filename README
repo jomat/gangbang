@@ -1,6 +1,16 @@
+Install instructions:
+---------------------
 make
 optionally copy gangbangrc.sample to ~/.gangbangrc
 run binary
+
+
+Known Bugs:
+-----------
+- weird segfaulting on window size changes
+- weird segfaulting when working with menus
+- weirdest segfaulting with menus and window size changes in combination
+- menu gets overpainted if underlaying areas are refreshed (songchange, etc...)
 
 Note: this piece of software is quite untested right now. Don't wonder if you
 find any bugs or missing features, and don't hesitate to report them.
