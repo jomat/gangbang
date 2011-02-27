@@ -11,8 +11,6 @@ void tokenize_songinfo(char *buf,struct songinfo *songinfo)
   char *saveptr = 0
     , *token;
 
-  debug("i has to tokenize %s\n",buf);
-
   token=strtok_r(buf, "|", &saveptr);
   token[strlen(token)-1]=0;
   strncpy(songinfo->artist,token,sizeof(songinfo->artist));
@@ -55,13 +53,14 @@ void update_status()
   static char currtrack[256],currartist[256];
 
   sock_status = socket_connect(config.net.host, config.net.port);
-  n = write(sock_status, "info %a |%t |%l |%d |%s |%S |%A |%L |%T |%R |\n", 47);
+  n = write(sock_status, INFOREQUEST, sizeof(INFOREQUEST));
   if (n < 0) {
     mvwaddstr(status, 0, 0, "cant write to remote");
     wrefresh(status);
   } else {
-    read(sock_status, buf, sizeof(buf) - 1);
-    buf[sizeof(buf) - 1]=0;
+    n=read(sock_status, buf, sizeof(buf) - 1);
+    if(n<1)
+      return;
     tokenize_songinfo(buf,&songinfo);
     snprintf(line,COLS,"now playing: %s - %s (%i/%i)\n"
       ,songinfo.artist,songinfo.track,songinfo.duration-songinfo.remaining
@@ -88,9 +87,12 @@ void update_status()
 
 void *update_status_loop()
 {
+  int snooze;
   while(1) {
     update_status();
-    sleep(config.lnf.statusupdate);
+    do {
+      snooze=sleep(config.lnf.statusupdate);
+    } while(snooze);
   }
 }
 

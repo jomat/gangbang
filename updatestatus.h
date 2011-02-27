@@ -9,6 +9,8 @@
 #include "net.h"
 #include "gangbang.h"
 
+#define INFOREQUEST "info %a |%t |%l |%d |%s |%S |%A |%L |%T |%R |\n"
+
 struct songinfo {
   char artist[256]
     , track[256]
