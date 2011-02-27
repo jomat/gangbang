@@ -69,26 +69,13 @@ void window_size_changed(void)
   refresh_main_screen();
 }
 
-int menu_change_radio(char *station)
+int show_menu(char *choices[],int n_choices,char *title)
 {
-  int i,rows,columns,n_choices,it_idx;
+  int i,rows,columns,it_idx;
   ITEM **it;
   MENU *me;
   WINDOW *win,*dwin;
   int ch;
-  char *choices[] = {
-    "Cancel",
-    "lastfm://user/$USER/loved",
-    "lastfm://user/$USER/personal",
-    "lastfm://usertags/$USER/$TAG",
-    "lastfm://artist/$ARTIST/similarartists",
-    "lastfm://globaltags/$TAG",
-    "lastfm://user/$USER/recommended",
-    "lastfm://user/$USER/playlist",
-    "lastfm://tag/$TAG1*$TAG2*$TAG3",
-    (char *)NULL,
-  };
-  n_choices = ARRAY_SIZE(choices);
 
   it = (ITEM **)calloc(n_choices, sizeof(ITEM *));
   for(i=0; i<n_choices; i++) {
@@ -106,7 +93,7 @@ int menu_change_radio(char *station)
   set_menu_sub (me, dwin=derwin(win, LINES-3<rows?LINES-3:rows, columns, 2, 2));
   set_menu_format(me,LINES-3<rows?LINES-3:rows,1);
   box(win, 0, 0);  
-  mvwaddstr(win, 1, 2, "Change radio station to:");
+  mvwaddstr(win, 1, 2, title);
 
   post_menu(me);  
   wrefresh(win);
@@ -150,6 +137,19 @@ int menu_change_radio(char *station)
 void keypresshandler(int key)
 {
   char tmp[512];
+  char *stations[] = {
+    "Cancel",
+    "lastfm://user/$USER/loved",
+    "lastfm://user/$USER/personal",
+    "lastfm://usertags/$USER/$TAG",
+    "lastfm://artist/$ARTIST/similarartists",
+    "lastfm://globaltags/$TAG",
+    "lastfm://user/$USER/recommended",
+    "lastfm://user/$USER/playlist",
+    "lastfm://tag/$TAG1*$TAG2*$TAG3",
+    (char *)NULL,
+  };
+  int choice=0;
 
   if (key == 'c')
     update_status();
@@ -173,7 +173,9 @@ void keypresshandler(int key)
     addhistory("trying to ban");
     send_command("ban");
   } else if (config.key.radio == key) {
-    menu_change_radio(tmp);
+    choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station");
+    snprintf(tmp,sizeof(tmp),"selected station: %s",stations[choice]);
+    addhistory(tmp);
   } else if (config.key.discovery == key) {
     addhistory("trying to toggle discovery");
     send_command("discovery");
