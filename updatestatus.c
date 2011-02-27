@@ -11,6 +11,8 @@ void tokenize_songinfo(char *buf,struct songinfo *songinfo)
   char *saveptr = 0
     , *token;
 
+  debug("i has to tokenize %s\n",buf);
+
   token=strtok_r(buf, "|", &saveptr);
   token[strlen(token)-1]=0;
   strncpy(songinfo->artist,token,sizeof(songinfo->artist));
