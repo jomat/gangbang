@@ -59,7 +59,7 @@ void update_status()
   }
   n = write(sock_status, INFOREQUEST, sizeof(INFOREQUEST));
   if (n < 0) {
-    mvwaddstr(status, 0, 0, "cant write to remote");
+    mvwaddstr(status, 0, 0, "can't write to remote");
     wrefresh(status);
   } else {
     n=read(sock_status, buf, sizeof(buf) - 1);
