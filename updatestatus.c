@@ -52,7 +52,11 @@ void update_status()
   struct songinfo songinfo;
   static char currtrack[256],currartist[256];
 
-  sock_status = socket_connect(config.net.host, config.net.port);
+  if((sock_status = socket_connect(config.net.host, config.net.port))<0) {
+    mvwaddstr(status, 0, 0, "can't connect to remote");
+    wrefresh(status);
+    return;
+  }
   n = write(sock_status, INFOREQUEST, sizeof(INFOREQUEST));
   if (n < 0) {
     mvwaddstr(status, 0, 0, "cant write to remote");
