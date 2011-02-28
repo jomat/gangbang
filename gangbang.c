@@ -69,7 +69,7 @@ void window_size_changed(void)
   refresh_main_screen();
 }
 
-int show_menu(char *choices[],int n_choices,char *title)
+int show_menu(char *choices[],int n_choices,char *title,int selection)
 {
   int i,rows,columns,it_idx;
   ITEM **it;
@@ -94,6 +94,7 @@ int show_menu(char *choices[],int n_choices,char *title)
   set_menu_format(me,LINES-3<rows?LINES-3:rows,1);
   box(win, 0, 0);  
   mvwaddstr(win, 1, 2, title);
+  set_current_item(me,it[selection]);
 
   post_menu(me);  
   wrefresh(win);
@@ -105,10 +106,7 @@ int show_menu(char *choices[],int n_choices,char *title)
     {
       case KEY_RESIZE:
         window_size_changed();
-        wresize(win,(LINES<rows+3)?LINES:rows+3, columns+3);
-        wresize(dwin,LINES-3<rows?LINES-3:rows, columns);
-        set_menu_format(me,LINES-3<rows?LINES-3:rows,1); 
-        touchwin(win);
+        return -1-item_index(current_item(me));;
         break;
       case KEY_DOWN:
         menu_driver(me, REQ_DOWN_ITEM);
@@ -149,7 +147,7 @@ void keypresshandler(int key)
     "lastfm://tag/$TAG1*$TAG2*$TAG3",
     (char *)NULL,
   };
-  int choice=0;
+  int choice=-1;
 
   if (key == 'c')
     update_status();
@@ -173,7 +171,7 @@ void keypresshandler(int key)
     addhistory("trying to ban");
     send_command("ban");
   } else if (config.key.radio == key) {
-    choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station");
+    while((choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station",-1-choice))<0);
     snprintf(tmp,sizeof(tmp),"selected station: %s",stations[choice]);
     addhistory(tmp);
   } else if (config.key.discovery == key) {
