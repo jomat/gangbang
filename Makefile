@@ -1,5 +1,5 @@
 MAKE = make                                                                                                                                  
-CFLAGS = -g -Wall -pedantic -std=c99 -lcurses -lmenu -lpanel -lpthread
+CFLAGS = -g -Wall -pedantic -std=c99 -lcurses -lmenu -lform -lpanel -lpthread
 CC = gcc 
 
 all: gangbang

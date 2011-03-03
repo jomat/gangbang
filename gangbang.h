@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <menu.h>
+#include <form.h>
 #include <panel.h>
 #include <stdlib.h>
 #include <ctype.h>

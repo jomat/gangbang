@@ -69,6 +69,75 @@ void window_size_changed(void)
   refresh_main_screen();
 }
 
+int show_input_dialog(char *title,char *input,bool input_clear)
+{
+  FIELD *field[2];
+  FORM  *my_form;
+  WINDOW *my_form_win;
+  int ch, rows, cols;
+
+  field[0] = new_field(1, strlen(input), 1, 1, 0, 0);
+  field[1] = NULL;
+
+  field_opts_off(field[0], O_STATIC);
+  field_opts_off(field[0], O_AUTOSKIP);
+  set_field_buffer(field[0],0,input);
+
+  my_form = new_form(field);
+
+  scale_form(my_form, &rows, &cols);
+
+  my_form_win = newwin(rows + 1, cols + 3, 4, 4);
+  keypad(my_form_win, TRUE);
+
+  set_form_win(my_form, my_form_win);
+  set_form_sub(my_form, derwin(my_form_win, rows, cols, 0, 1));
+  curs_set(1);
+
+  box(my_form_win, 0, 0);
+
+  post_form(my_form);
+  box(my_form_win, 0, 0);
+  wrefresh(my_form_win);
+
+  while((ch = wgetch(my_form_win)) != 0xA) {
+    switch(ch) {
+      case KEY_BACKSPACE:
+        form_driver(my_form, REQ_DEL_PREV);
+        break;
+      default:
+        form_driver(my_form, ch);
+        break;
+    }
+  }
+  /* something like this is needed to sync the actual buffer.
+   * http://docsrv.sco.com/SDK_charm/_Setting_and_Reading_Field_Buffe.html writes:
+    The function field_buffer always returns the correct value if the field is not current.
+    However, if the field is current, the function is sometimes inaccurate because data is
+    not moved to field buffer 0 immediately upon entry. You may rest assured that
+    field_buffer is accurate on the current field if
+    * it is called from the field check validation routine, if any
+    * it is called from the form or field initialization or termination routines, if any
+    * it is called just after a REQ_VALIDATION request to the form driver 
+   */
+  form_driver(my_form,REQ_VALIDATION);
+
+  strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
+
+  curs_set(0);
+  unpost_form(my_form);
+  free_form(my_form);
+  free_field(field[0]);
+  free_field(field[1]); 
+
+  delwin(my_form_win);
+
+
+
+
+  return 1;
+}
+
 int show_menu(char *choices[],int n_choices,char *title,int selection)
 {
   int i,rows,columns,it_idx;
@@ -148,6 +217,7 @@ void keypresshandler(int key)
     (char *)NULL,
   };
   int choice=-1;
+  char input[512];
 
   if (key == 'c')
     update_status();
@@ -172,7 +242,9 @@ void keypresshandler(int key)
     send_command("ban");
   } else if (config.key.radio == key) {
     while((choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station",-1-choice))<0);
-    snprintf(tmp,sizeof(tmp),"selected station: %s",stations[choice]);
+    strncpy(input,"enter station",sizeof(input));
+    while(!show_input_dialog(NULL,input,FALSE));
+    snprintf(tmp,sizeof(tmp),"selected station: %s: %s-",stations[choice],input);
     addhistory(tmp);
   } else if (config.key.discovery == key) {
     addhistory("trying to toggle discovery");
