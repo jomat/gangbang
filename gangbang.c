@@ -108,6 +108,8 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   while((ch = wgetch(my_form_win)) != 0xA) {
     switch(ch) {
       case KEY_RESIZE:
+        form_driver(my_form,REQ_VALIDATION);
+        strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
         window_size_changed();
         return -1;
         break;
@@ -136,7 +138,6 @@ int show_input_dialog(char *title,char *input,bool input_clear)
     * it is called just after a REQ_VALIDATION request to the form driver 
    */
   form_driver(my_form,REQ_VALIDATION);
-
   strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
 
   curs_set(0);
