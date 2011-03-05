@@ -81,6 +81,10 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   field_opts_off(field[0], O_STATIC);
   field_opts_off(field[0], O_AUTOSKIP);
+  if(input_clear)
+    field_opts_on(field[0], O_BLANK);
+  else
+    field_opts_off(field[0], O_BLANK);
   set_field_buffer(field[0],0,input);
 
   my_form = new_form(field);
@@ -96,12 +100,23 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   box(my_form_win, 0, 0);
 
+  form_driver(my_form,REQ_END_LINE);
   post_form(my_form);
   box(my_form_win, 0, 0);
   wrefresh(my_form_win);
 
   while((ch = wgetch(my_form_win)) != 0xA) {
     switch(ch) {
+      case KEY_RESIZE:
+        window_size_changed();
+        return -1;
+        break;
+      case KEY_RIGHT:
+        form_driver(my_form, REQ_NEXT_CHAR);
+        break;
+      case KEY_LEFT:
+        form_driver(my_form, REQ_PREV_CHAR);
+        break;
       case KEY_BACKSPACE:
         form_driver(my_form, REQ_DEL_PREV);
         break;
@@ -241,9 +256,10 @@ void keypresshandler(int key)
     addhistory("trying to ban");
     send_command("ban");
   } else if (config.key.radio == key) {
+    int ret=0;
     while((choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station",-1-choice))<0);
     strncpy(input,"enter station",sizeof(input));
-    while(!show_input_dialog(NULL,input,FALSE));
+    while((ret=show_input_dialog(NULL,input,ret?0:1))<0);
     snprintf(tmp,sizeof(tmp),"selected station: %s: %s-",stations[choice],input);
     addhistory(tmp);
   } else if (config.key.discovery == key) {
