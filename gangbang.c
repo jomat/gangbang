@@ -78,13 +78,17 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   field[0] = new_field(1, strlen(input), 1, 1, 0, 0);
   field[1] = NULL;
-
-  field_opts_off(field[0], O_STATIC);
-  field_opts_off(field[0], O_AUTOSKIP);
-  if(input_clear)
-    field_opts_on(field[0], O_BLANK);
-  else
-    field_opts_off(field[0], O_BLANK);
+  set_field_opts(field[0]
+    ,O_VISIBLE
+    |O_ACTIVE
+    |O_PUBLIC
+    |O_EDIT
+    |!O_WRAP
+    |input_clear?O_BLANK:!O_BLANK
+    |!O_AUTOSKIP
+    |O_NULLOK
+    |!O_STATIC
+    |O_PASSOK);
   set_field_buffer(field[0],0,input);
 
   my_form = new_form(field);
@@ -100,10 +104,12 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   box(my_form_win, 0, 0);
 
-  form_driver(my_form,REQ_END_LINE);
   post_form(my_form);
   box(my_form_win, 0, 0);
   wrefresh(my_form_win);
+  //form_driver(my_form,REQ_END_FIELD);
+  form_driver(my_form,REQ_END_LINE);
+
 
   while((ch = wgetch(my_form_win)) != 0xA) {
     switch(ch) {
