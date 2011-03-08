@@ -78,17 +78,20 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   field[0] = new_field(1, strlen(input), 1, 1, 0, 0);
   field[1] = NULL;
+
   set_field_opts(field[0]
     ,O_VISIBLE
     |O_ACTIVE
     |O_PUBLIC
     |O_EDIT
-    |!O_WRAP
-    |input_clear?O_BLANK:!O_BLANK
-    |!O_AUTOSKIP
+//    |(!O_WRAP)
+    //|(input_clear?O_BLANK:!O_BLANK)  // TODO: 
+//    |(!O_BLANK)
+//    |(!O_AUTOSKIP)
     |O_NULLOK
-    |!O_STATIC
+//    |(!O_STATIC)
     |O_PASSOK);
+
   set_field_buffer(field[0],0,input);
 
   my_form = new_form(field);
@@ -108,10 +111,11 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   box(my_form_win, 0, 0);
   wrefresh(my_form_win);
   //form_driver(my_form,REQ_END_FIELD);
-  form_driver(my_form,REQ_END_LINE);
-
+  //form_driver(my_form,REQ_END_LINE);
+      debug("input dialog %x\n",KEY_BACKSPACE);
 
   while((ch = wgetch(my_form_win)) != 0xA) {
+      debug("key %x\n",ch);
     switch(ch) {
       case KEY_RESIZE:
         form_driver(my_form,REQ_VALIDATION);
@@ -125,6 +129,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
       case KEY_LEFT:
         form_driver(my_form, REQ_PREV_CHAR);
         break;
+      case 0x7f:  /* KEY_BACKSPACE didn't seem to work */
       case KEY_BACKSPACE:
         form_driver(my_form, REQ_DEL_PREV);
         break;
@@ -153,9 +158,6 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   free_field(field[1]); 
 
   delwin(my_form_win);
-
-
-
 
   return 1;
 }
@@ -249,29 +251,31 @@ void keypresshandler(int key)
     window_size_changed();
   } else if (config.key.pause == key) {
     addhistory("trying to toggle pause");
-    send_command("pause");
+    send_command("pause",5);
   } else if (config.key.stop == key) {
     addhistory("trying to stop");
-    send_command("stop");
+    send_command("stop",4);
   } else if (config.key.love == key) {
     addhistory("trying to love current track");
-    send_command("love");
+    send_command("love",4);
   } else if (config.key.next == key) {
     addhistory("trying to skip");
-    send_command("skip");
+    send_command("skip",4);
   } else if (config.key.ban == key) {
     addhistory("trying to ban");
-    send_command("ban");
+    send_command("ban",3);
   } else if (config.key.radio == key) {
     int ret=0;
     while((choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station",-1-choice))<0);
-    strncpy(input,"enter station",sizeof(input));
+    strncpy(input,stations[choice]+9,sizeof(input));
     while((ret=show_input_dialog(NULL,input,ret?0:1))<0);
+    snprintf(tmp,sizeof(tmp),"play lastfm://%s",input);
+    send_command(tmp,strlen(tmp));
     snprintf(tmp,sizeof(tmp),"selected station: %s: %s-",stations[choice],input);
     addhistory(tmp);
   } else if (config.key.discovery == key) {
     addhistory("trying to toggle discovery");
-    send_command("discovery");
+    send_command("discovery",9);
   }
 }
 

@@ -18,6 +18,6 @@
 #include "config.h"
 
 int socket_connect(char *host, in_port_t port);
-int send_command(char *command);
+int send_command(char *command, int bytes);
 
 #endif /* GANGBANG_NET_H */
