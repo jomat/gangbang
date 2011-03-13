@@ -269,6 +269,8 @@ void keypresshandler(int key)
   } else if (config.key.radio == key) {
     int ret=0;
     while((choice=show_menu(stations,ARRAY_SIZE(stations),"change radio station",-1-choice))<0);
+    if(!choice)
+      return;
     strncpy(input,stations[choice]+9,sizeof(input));
     while((ret=show_input_dialog(NULL,input,ret?0:1))<0);
     snprintf(tmp,sizeof(tmp),"play lastfm://%s",input);
