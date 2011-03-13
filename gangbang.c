@@ -131,6 +131,10 @@ int show_input_dialog(char *title,char *input,bool input_clear)
       case KEY_BACKSPACE:
         form_driver(my_form, REQ_DEL_PREV);
         break;
+      case KEY_DL:
+      case 0x14a: /* KEY_DL didn't seem to work */
+        form_driver(my_form, REQ_DEL_CHAR);
+        break;
       default:
         form_driver(my_form, ch);
         break;
