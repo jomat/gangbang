@@ -112,9 +112,6 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   post_form(my_form);
   box(my_form_win, 0, 0);
   wrefresh(my_form_win);
-  //form_driver(my_form,REQ_END_FIELD);
-  //form_driver(my_form,REQ_END_LINE);
-      debug("input dialog %x\n",KEY_BACKSPACE);
 
   for(int i=0;input[i]&&input[i++]!='$';form_driver(my_form, REQ_NEXT_CHAR));
 
