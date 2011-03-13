@@ -116,6 +116,8 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   //form_driver(my_form,REQ_END_LINE);
       debug("input dialog %x\n",KEY_BACKSPACE);
 
+  for(int i=0;input[i]&&input[i++]!='$';form_driver(my_form, REQ_NEXT_CHAR));
+
   while((ch = wgetch(my_form_win)) != 0xA) {
       debug("key %x\n",ch);
     switch(ch) {
