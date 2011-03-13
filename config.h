@@ -45,6 +45,8 @@ struct config {
   struct lnf lnf;
 } config;
 
+void trim(char *s);
+
 void read_config();
 
 #endif /* GANGBANG_CONFIG_H */

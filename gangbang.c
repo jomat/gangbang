@@ -152,6 +152,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
    */
   form_driver(my_form,REQ_VALIDATION);
   strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
+  trim(input);
 
   curs_set(0);
   unpost_form(my_form);
