@@ -84,13 +84,15 @@ int show_input_dialog(char *title,char *input,bool input_clear)
     |O_ACTIVE
     |O_PUBLIC
     |O_EDIT
-//    |(!O_WRAP)
+//    |O_WRAP
     //|(input_clear?O_BLANK:!O_BLANK)  // TODO: 
-//    |(!O_BLANK)
-//    |(!O_AUTOSKIP)
+//    |O_BLANK
+//    |O_AUTOSKIP
     |O_NULLOK
-//    |(!O_STATIC)
+//    |O_STATIC
     |O_PASSOK);
+
+  set_max_field(field[0], 256);
 
   set_field_buffer(field[0],0,input);
 
