@@ -9,7 +9,6 @@ void quit(void)
 {
   delwin(status);
   delwin(history);
-  delwin(info);
   endwin();
 }
 
@@ -47,8 +46,8 @@ void refresh_main_screen()
               config.key.pause, config.key.stop, config.key.love,
               config.key.next, config.key.ban, config.key.radio,
               config.key.discovery, config.key.quit);
-    mvwaddstr(info, 0, 0, tmp);
-    wnoutrefresh(info);
+    mvwaddstr(stdscr, LINES-1, 0, tmp);
+    wnoutrefresh(stdscr);
   }
   doupdate();
 }
@@ -62,9 +61,7 @@ void window_size_changed(void)
   if (oldLINES-LINES < 0)
     wscrl(history, oldLINES-LINES);
   wresize(status,4,COLS);
-  wresize(info,1,COLS);
   mvwin(status,LINES - (4 + config.info.show),0);
-  mvwin(info,LINES - 1,0);
   oldLINES=LINES;
   refresh_main_screen();
 }
@@ -298,11 +295,10 @@ void create_windows()
   history = newpad(LINES - (4 + config.info.show), COLS);
   status = newwin(4, COLS, LINES - (4 + config.info.show), 0);
   scrollok(history, TRUE);
-  info = newwin(1, COLS, LINES - 1, 0);
 
   wbkgd(status, COLOR_PAIR(1));
   wbkgd(history, COLOR_PAIR(2));
-  wbkgd(info, COLOR_PAIR(3));
+  wbkgd(stdscr, COLOR_PAIR(3));
 
   oldLINES=LINES;  // important to know for window resizing
   refresh_main_screen();

@@ -29,7 +29,7 @@
 #include "config.h"
 #include "updatestatus.h"
 
-WINDOW *status, *history, *info;
+WINDOW *status, *history;
 int oldLINES;
 
 void quit(void);
