@@ -291,18 +291,18 @@ void create_windows()
 
   start_color();
   use_default_colors();
-  init_pair(2, config.status.fg, config.status.bg);
-  init_pair(3, config.history.fg, config.history.bg);
-  init_pair(4, config.info.fg, config.info.bg);
+  init_pair(1, config.status.fg, config.status.bg);
+  init_pair(2, config.history.fg, config.history.bg);
+  init_pair(3, config.info.fg, config.info.bg);
 
   history = newpad(LINES - (4 + config.info.show), COLS);
   status = newwin(4, COLS, LINES - (4 + config.info.show), 0);
   scrollok(history, TRUE);
   info = newwin(1, COLS, LINES - 1, 0);
 
-  wbkgd(status, COLOR_PAIR(2));
-  wbkgd(history, COLOR_PAIR(3));
-  wbkgd(info, COLOR_PAIR(4));
+  wbkgd(status, COLOR_PAIR(1));
+  wbkgd(history, COLOR_PAIR(2));
+  wbkgd(info, COLOR_PAIR(3));
 
   oldLINES=LINES;  // important to know for window resizing
   refresh_main_screen();
