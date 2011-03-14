@@ -30,8 +30,10 @@
 #include "updatestatus.h"
 
 WINDOW *status, *history;
+PANEL *pstatus, *phistory;
 int oldLINES;
 
+void refresh_main_screen();
 void quit(void);
 void addhistory(char *line);
 void window_size_changed(void);

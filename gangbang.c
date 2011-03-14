@@ -7,6 +7,8 @@
 
 void quit(void)
 {
+  del_panel(pstatus);
+  del_panel(phistory);
   delwin(status);
   delwin(history);
   endwin();
@@ -29,15 +31,18 @@ void addhistory(char *line)
 
   mvwinsstr(history, LINES - (5 + config.info.show), 0, tmp);
   prefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
+  refresh_main_screen();
 }
 
 void refresh_main_screen()
 {
   char tmp[1024];
-  touchwin(status);
-  wnoutrefresh(stdscr);
-  wnoutrefresh(status);
+  PANEL *pan = panel_above((PANEL *)0);
+  
   pnoutrefresh(history,0,0,0,0,LINES - (4 + config.info.show),COLS);
+  do { /* necessary because panel lib doesn't know about prefesh() et al */
+    touchwin(panel_window(pan));
+  } while ((pan=panel_above(pan)));
   if (config.info.show)
   {
      snprintf(tmp, sizeof(tmp),
@@ -47,8 +52,8 @@ void refresh_main_screen()
               config.key.next, config.key.ban, config.key.radio,
               config.key.discovery, config.key.quit);
     mvwaddstr(stdscr, LINES-1, 0, tmp);
-    wnoutrefresh(stdscr);
   }
+  update_panels();
   doupdate();
 }
 
@@ -71,6 +76,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   FIELD *field[2];
   FORM  *my_form;
   WINDOW *my_form_win;
+  PANEL *my_panel;
   int ch, rows, cols;
 
   field[0] = new_field(1, strlen(input), 1, 1, 0, 0);
@@ -98,6 +104,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   scale_form(my_form, &rows, &cols);
 
   my_form_win = newwin(rows + 1, cols + 3, 4, 4);
+  my_panel = new_panel(my_form_win);
   keypad(my_form_win, TRUE);
 
   set_form_win(my_form, my_form_win);
@@ -108,7 +115,6 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
   post_form(my_form);
   box(my_form_win, 0, 0);
-  wrefresh(my_form_win);
 
   for(int i=0;input[i]&&input[i++]!='$';form_driver(my_form, REQ_NEXT_CHAR));
 
@@ -161,6 +167,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   free_field(field[1]); 
 
   delwin(my_form_win);
+  del_panel(my_panel);
 
   return 1;
 }
@@ -171,6 +178,7 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
   ITEM **it;
   MENU *me;
   WINDOW *win,*dwin;
+  PANEL *pan;
   int ch;
 
   it = (ITEM **)calloc(n_choices, sizeof(ITEM *));
@@ -184,6 +192,8 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
   scale_menu(me,&rows,&columns);
 
   win = newwin((LINES<rows+3)?LINES:rows+3, columns+3, 0, 0);
+  pan = new_panel(win);
+  top_panel(pan);
   keypad(win, TRUE);
   set_menu_win (me, win);
   set_menu_sub (me, dwin=derwin(win, LINES-3<rows?LINES-3:rows, columns, 2, 2));
@@ -193,8 +203,8 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
   set_current_item(me,it[selection]);
 
   post_menu(me);  
-  wrefresh(win);
-
+  update_panels();
+  doupdate();
 
   while((ch=getch()) != 0xA)
   {
@@ -211,7 +221,8 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
         menu_driver(me, REQ_UP_ITEM);
         break;
     }
-    wrefresh(win);
+    update_panels();
+    doupdate();
   } 
 
   it_idx = item_index(current_item(me));
@@ -223,6 +234,7 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
     free_item(it[i]);
 
   free(it);
+  del_panel(pan);
   delwin(win);
   refresh_main_screen();
   return it_idx;
@@ -302,6 +314,8 @@ void create_windows()
   history = newpad(LINES - (4 + config.info.show), COLS);
   status = newwin(4, COLS, LINES - (4 + config.info.show), 0);
   scrollok(history, TRUE);
+  pstatus = new_panel(status);
+  phistory = new_panel(history);
 
   wbkgd(status, COLOR_PAIR(1));
   wbkgd(history, COLOR_PAIR(2));

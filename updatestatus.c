@@ -54,13 +54,13 @@ void update_status()
 
   if((sock_status = socket_connect(config.net.host, config.net.port))<0) {
     mvwaddstr(status, 0, 0, "can't connect to remote");
-    wrefresh(status);
+    //wrefresh(status);
     return;
   }
   n = write(sock_status, INFOREQUEST, sizeof(INFOREQUEST)-1);
   if (n < 0) {
     mvwaddstr(status, 0, 0, "can't write to remote");
-    wrefresh(status);
+    //wrefresh(status);
   } else {
     n=read(sock_status, buf, sizeof(buf) - 1);
     if(n<1)
@@ -86,7 +86,7 @@ void update_status()
   }
   close(sock_status);
 
-  wrefresh(status);
+  refresh_main_screen();
 }
 
 void *update_status_loop()
