@@ -174,12 +174,12 @@ int show_input_dialog(char *title,char *input,bool input_clear)
 
 int show_menu(char *choices[],int n_choices,char *title,int selection)
 {
-  int i,rows,columns,it_idx;
+  int i,rows,columns;
   ITEM **it;
   MENU *me;
   WINDOW *win,*dwin;
   PANEL *pan;
-  int ch;
+  int ch,ret;
 
   it = (ITEM **)calloc(n_choices, sizeof(ITEM *));
   for(i=0; i<n_choices; i++) {
@@ -212,8 +212,8 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
     {
       case KEY_RESIZE:
         window_size_changed();
-        return -1-item_index(current_item(me));;
-        break;
+        ret = -1-item_index(current_item(me));;
+        goto end;
       case KEY_DOWN:
         menu_driver(me, REQ_DOWN_ITEM);
         break;
@@ -225,7 +225,7 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
     doupdate();
   } 
 
-  it_idx = item_index(current_item(me));
+  ret = item_index(current_item(me));
 
   unpost_menu(me);
   free_menu(me);
@@ -233,11 +233,12 @@ int show_menu(char *choices[],int n_choices,char *title,int selection)
   for(i=0; i<n_choices; i++)
     free_item(it[i]);
 
+end:
   free(it);
   del_panel(pan);
   delwin(win);
   refresh_main_screen();
-  return it_idx;
+  return ret;
 }
 
 void keypresshandler(int key)
