@@ -125,6 +125,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
         form_driver(my_form,REQ_VALIDATION);
         strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
         window_size_changed();
+        trim(input);
         ret = -1;
         goto end;
       case KEY_RIGHT:
