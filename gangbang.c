@@ -77,7 +77,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   FORM  *my_form;
   WINDOW *my_form_win;
   PANEL *my_panel;
-  int ch, rows, cols;
+  int ch, rows, cols, ret;
 
   field[0] = new_field(1, strlen(input), 1, 1, 0, 0);
   field[1] = NULL;
@@ -125,8 +125,8 @@ int show_input_dialog(char *title,char *input,bool input_clear)
         form_driver(my_form,REQ_VALIDATION);
         strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
         window_size_changed();
-        return -1;
-        break;
+        ret = -1;
+        goto end;
       case KEY_RIGHT:
         form_driver(my_form, REQ_NEXT_CHAR);
         break;
@@ -160,6 +160,9 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   strncpy(input,field_buffer(field[0],0),512);  /* TODO: */
   trim(input);
 
+  ret = 1;
+
+end:
   curs_set(0);
   unpost_form(my_form);
   free_form(my_form);
@@ -169,7 +172,7 @@ int show_input_dialog(char *title,char *input,bool input_clear)
   delwin(my_form_win);
   del_panel(my_panel);
 
-  return 1;
+  return ret;
 }
 
 int show_menu(char *choices[],int n_choices,char *title,int selection)
